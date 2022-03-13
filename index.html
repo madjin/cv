@@ -30,6 +30,38 @@ import {OrbitControls} from 'https://lib.webaverse.com/lib/OrbitControls.js';
 // const inversionMatrix = new THREE.Matrix4();
 // const unityTransform = getBasisTransform('-X+Y+Z', '+X+Y+Z', inversionMatrix);
 
+var btn = document.createElement('button');
+document.body.appendChild(btn);
+btn.textContent = 'Download .glb';
+btn.onclick = download;
+
+function download() {
+  const exporter = new GLTFExporter();
+  exporter.parse(
+    scene,
+    function (result) {
+      saveArrayBuffer(result, 'scene.glb');
+    },
+    { binary: true }
+  );
+}
+
+function saveArrayBuffer(buffer, filename) {
+  save(new Blob([buffer], { type: 'application/octet-stream' }), filename);
+}
+
+const link = document.createElement('a');
+link.style.display = 'none';
+document.body.appendChild(link); // Firefox workaround, see #6594
+
+function save(blob, filename) {
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+
+  // URL.revokeObjectURL( url ); breaks Firefox...
+}
+
 function convertDataURIToBinary(base64) {
   var raw = window.atob(base64);
   var rawLength = raw.length;
@@ -45,7 +77,7 @@ const _getParcel = (x, z, parcels) => parcels.find(parcel => {
   return x >= parcel.x1 && x < parcel.x2 && z >= parcel.z1 && z < parcel.z2;
 });
 const _getContent = async (id, hash) => {
-  const res = await fetch(`https://https-js-cryptovoxels-com.proxy.exokit.org/grid/parcels/${id}/at/${hash}`);
+  const res = await fetch(`http://https-js-cryptovoxels-com.proxy.exokit.org/grid/parcels/${id}/at/${hash}`);
   const j = await res.json();
   const {parcel} = j;
   return parcel;
@@ -484,8 +516,8 @@ const _getCoord = (x, z) => parcels.find(parcel);
 (async () => {
   const parcels = await (async () => {
     const nonce = 30*Math.floor(Date.now()/1e3/30);
-    console.log('got nonce', `https://https-js-cryptovoxels-com.proxy.exokit.org/cache/${nonce}/parcels.json`);
-    const res = await fetch(`https://https-js-cryptovoxels-com.proxy.exokit.org/cache/${nonce}/parcels.json`);
+    console.log('got nonce', `http://https-js-cryptovoxels-com.proxy.exokit.org/cache/${nonce}/parcels.json`);
+    const res = await fetch(`https://www.cryptovoxels.com/api/parcels.json`);
     const j = await res.json();
     const {parcels} = j;
     return parcels;
@@ -624,9 +656,9 @@ const _getCoord = (x, z) => parcels.find(parcel);
       
       let {voxels, palette, tileset, features, x1, x2, y1, y2, z1, z2} = content;
       if (tileset) {
-        tileset = `https://https-cdn-cryptovoxels-com.proxy.exokit.org${tileset}`;
+        tileset = `http://https-cdn-cryptovoxels-com.proxy.exokit.org${tileset}`;
       } else {
-        tileset = `https://https-www-cryptovoxels-com.proxy.exokit.org/textures/atlas-ao.png`;
+        tileset = `http://https-www-cryptovoxels-com.proxy.exokit.org/textures/atlas-ao.png`;
       }
       const w = x2 - x1;
       const h = y2 - y1;
@@ -687,7 +719,7 @@ const _getCoord = (x, z) => parcels.find(parcel);
             case 'image': {
               const {url, position, rotation, scale} = feature;
               const u = new URL(url);
-              u.host = u.protocol.replace(/:/g, '-') + u.host.replace(/\./g, '-') + '.proxy.exokit.org';
+              //u.host = u.protocol.replace(/:/g, '-') + u.host.replace(/\./g, '-') + '.proxy.exokit.org';
               // console.log('got u', u.href);
               const geometry = imageGeometry;
               const material = _getTextureMaterialCached(u.href);
@@ -714,7 +746,7 @@ const _getCoord = (x, z) => parcels.find(parcel);
               if (match) {
                 const contract = match[1];
                 const token = match[2];
-                const u = `https://https-img-cryptovoxels-com.proxy.exokit.org/node/opensea?contract=${contract}&token=${token}&force_update=0`;
+                const u = `http://https-img-cryptovoxels-com.proxy.exokit.org/node/opensea?contract=${contract}&token=${token}&force_update=0`;
                 const res = await fetch(u);
                 const j = await res.json();
                 const {image_url} = j;
@@ -743,7 +775,7 @@ const _getCoord = (x, z) => parcels.find(parcel);
               // const u = new URL(url);
               // u.host = u.protocol.replace(/:/g, '-') + u.host.replace(/\./g, '-') + '.proxy.exokit.org';
               // const model = await _loadVoxCached(u.href);
-              const u = `https://https-cdn-cryptovoxels-com.proxy.exokit.org/node/vox?url=${encodeURI(url)}`;
+              const u = `http://https-cdn-cryptovoxels-com.proxy.exokit.org/node/vox?url=${encodeURI(url)}`;
               const model = await _loadVoxCached(u);
               console.log('got u', u.href, model, {w, h, d, position, rotation, scale});
               model.position.fromArray(position);
@@ -781,6 +813,7 @@ const _getCoord = (x, z) => parcels.find(parcel);
       cancel,
     };
   };
+  
   
   class Tracker {
     constructor() {
