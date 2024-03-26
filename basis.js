@@ -1,4 +1,4 @@
-import { Vector3 } from 'https://app.webaverse.com/three.module.js';
+import { Vector3 } from './three.module.js';
 
 const basesRegex = /^([+-][xyz])([+-][xyz])([+-][xyz])$/i;
 const nameToIndex = { x: 0, y: 1, z: 2 };
