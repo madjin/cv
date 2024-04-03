@@ -786,6 +786,31 @@ const _getCoord = (x, z) => parcels.find(parcel);
               }
               break;
             }
+            case 'megavox': {
+              const {url, position, rotation, scale, flipX} = feature;
+              // const u = new URL(url);
+              // u.host = u.protocol.replace(/:/g, '-') + u.host.replace(/\./g, '-') + '.proxy.exokit.org';
+              // const model = await _loadVoxCached(u.href);
+              const u = `https://herring.crvox.com/node/vox?url=${encodeURI(url)}`;
+              const model = await _loadVoxCached(u);
+              console.log('got u', u.href, model, {w, h, d, position, rotation, scale});
+              model.position.fromArray(position);
+              model.position.x *= -1;
+              model.position.multiplyScalar(2);
+              model.position.x -= w - 0.5;
+              model.position.y += 0.5;
+              model.position.z += d - 0.5;
+              model.rotation.order = 'YXZ';
+              model.rotation.fromArray(rotation);
+              // model.rotation.x *= -1;
+              model.rotation.y *= -1;
+              model.rotation.z *= -1;
+              model.scale.fromArray(scale).multiplyScalar(0.04);
+              // model.scale.z *= -1;
+              model.frustumCulled = false;
+              object.add(model);
+              break;
+            }
             case 'vox-model': {
               const {url, position, rotation, scale, flipX} = feature;
               // const u = new URL(url);
